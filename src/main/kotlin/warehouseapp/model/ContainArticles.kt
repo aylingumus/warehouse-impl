@@ -1,4 +1,4 @@
-package models
+package warehouseapp.model
 
 import com.google.gson.annotations.SerializedName
 
