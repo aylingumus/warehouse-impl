@@ -17,21 +17,17 @@ class ProductServiceImpl : ProductService {
     private val gson: Gson = GsonBuilder().setPrettyPrinting().create()
     private val productsJsonString: String = File("./src/main/resources/products.json").readText(Charsets.UTF_8)
     private val inventoryJsonString: String = File("./src/main/resources/inventory.json").readText(Charsets.UTF_8)
+    private val productsRoot = gson.fromJson(productsJsonString, ProductsRoot::class.java)
+    private val inventoryRoot = gson.fromJson(inventoryJsonString, InventoryRoot::class.java)
 
     override fun getAvailableProducts(): ArrayList<Product> {
-        val productsRoot: ProductsRoot?
-        val inventoryRoot: InventoryRoot?
         val availableProducts: ArrayList<Product> = arrayListOf()
         try {
-            productsRoot = gson.fromJson(productsJsonString, ProductsRoot::class.java)
-            inventoryRoot = gson.fromJson(inventoryJsonString, InventoryRoot::class.java)
-
             for (product: Product in productsRoot.products) {
                 var isAvailable = false
                 for (inventory: Inventory in inventoryRoot.inventory) {
                     for (containArticle: ContainArticles in product.containArticles) {
-                        isAvailable =
-                            containArticle.amountOf?.toInt()?.let { inventory.stock?.toInt()?.minus(it) }!! > 0
+                        isAvailable = (inventory.stock?.toInt()?.minus(containArticle.amountOf?.toInt()!!))!! > 0
                         if (!isAvailable) break
                     }
                     if (isAvailable) {
@@ -45,5 +41,40 @@ class ProductServiceImpl : ProductService {
             throw IOException("General I/O exception: " + e.message)
         }
         return availableProducts
+    }
+
+    override fun sellProduct(name: String): String {
+        val currentInventoryJsonString: String
+        val currentProductsJsonString: String
+        val inventoryFile = File("./src/main/resources/inventory.json")
+        val productsFile = File("./src/main/resources/products.json")
+        try {
+            val products = productsRoot.products
+            val product: Product = products.first { it.name.equals(name) }
+            var isAvailable = false
+            for (inventory: Inventory in inventoryRoot.inventory) {
+                for (containArticle: ContainArticles in product.containArticles) {
+                    if (inventory.artId == containArticle.artId) {
+                        isAvailable = (inventory.stock?.toInt()?.minus(containArticle.amountOf?.toInt()!!))!! > 0
+                        if (isAvailable) {
+                            inventory.stock = (inventory.stock?.toInt()?.minus(containArticle.amountOf?.toInt()!!)).toString()
+                        } else continue
+                    }
+                }
+            }
+            if (isAvailable) {
+                products.remove(product)
+            }
+            currentInventoryJsonString = gson.toJson(inventoryRoot)
+            inventoryFile.writeText(currentInventoryJsonString, Charsets.UTF_8)
+
+            currentProductsJsonString = gson.toJson(productsRoot)
+            productsFile.writeText(currentProductsJsonString, Charsets.UTF_8)
+        } catch (e: FileNotFoundException) {
+            throw FileNotFoundException("File not found.")
+        } catch (e: IOException) {
+            throw IOException("General I/O exception: " + e.message)
+        }
+        return "Product sold."
     }
 }
