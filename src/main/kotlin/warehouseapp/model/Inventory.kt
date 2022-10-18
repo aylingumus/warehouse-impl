@@ -7,7 +7,7 @@ data class InventoryRoot(
 )
 
 data class Inventory(
-    @SerializedName("art_id") var artId: String? = null,
+    @SerializedName("art_id") var artId: String,
     @SerializedName("name") var name: String? = null,
     @SerializedName("stock") var stock: String? = null
 )

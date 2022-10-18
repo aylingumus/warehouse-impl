@@ -7,6 +7,8 @@ data class ProductsRoot(
 )
 
 data class Product(
+    @SerializedName("id") var id: Int,
     @SerializedName("name") var name: String? = null,
+    @SerializedName("is_out_of_stock") var isOutOfStock: Boolean = false,
     @SerializedName("contain_articles") var containArticles: ArrayList<ContainArticles> = arrayListOf()
 )

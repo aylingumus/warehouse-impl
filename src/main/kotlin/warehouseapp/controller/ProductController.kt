@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+import warehouseapp.model.Product
 import warehouseapp.service.ProductService
 
 @RestController
@@ -20,7 +21,12 @@ class ProductController(private val productService: ProductService) {
     }
 
     @DeleteMapping("/")
-    fun sellProduct(@RequestParam name: String): ResponseEntity<*> {
-        return ResponseEntity.ok(productService.sellProduct(name))
+    fun sellProduct(@RequestParam id: Int): ResponseEntity<*> {
+        val product: Product? = productService.sellProduct(id)
+        return if (product == null) {
+            ResponseEntity("Product not found.", HttpStatus.NOT_FOUND)
+        } else if (product.isOutOfStock) {
+            ResponseEntity("Out of stock.", HttpStatus.NO_CONTENT)
+        } else ResponseEntity.ok(product)
     }
 }
