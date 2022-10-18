@@ -19,7 +19,7 @@ class ProductServiceImpl : ProductService {
         val availableProducts: ArrayList<Product> = arrayListOf()
         val productsRoot: ProductsRoot = readProductsFromFile()
         val inventoryRoot: InventoryRoot = readInventoryFromFile()
-        for (product: Product in productsRoot.products) {
+        for (product: Product in productsRoot.products.filter { !it.isOutOfStock }) {
             var isAvailable = false
             for (inventory: Inventory in inventoryRoot.inventory) {
                 for (containArticle: ContainArticles in product.containArticles) {
@@ -53,7 +53,7 @@ class ProductServiceImpl : ProductService {
                     }
                 }
             }
-            if (isAvailable) product.isOutOfStock = true
+            if (!isAvailable) product.isOutOfStock = true
             writeObjectToFile(productsRoot, productsFile)
             writeObjectToFile(inventoryRoot, inventoryFile)
         }
