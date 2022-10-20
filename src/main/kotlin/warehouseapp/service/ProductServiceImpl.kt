@@ -19,11 +19,15 @@ class ProductServiceImpl : ProductService {
         val availableProducts: ArrayList<Product> = arrayListOf()
         val productsRoot: ProductsRoot = readProductsFromFile()
         val inventoryRoot: InventoryRoot = readInventoryFromFile()
+        // I created "isOutOfStock" property to check which products are in stock or not
+        // Then I check the availability of articles for each product
         for (product: Product in productsRoot.products.filter { !it.isOutOfStock }) {
             var isAvailable = false
             for (inventory: Inventory in inventoryRoot.inventory) {
                 for (containArticle: ContainArticles in product.containArticles) {
-                    isAvailable = (inventory.stock?.toInt()?.minus(containArticle.amountOf?.toInt()!!))!! > 0
+                    if (inventory.artId == containArticle.artId) {
+                        isAvailable = (inventory.stock?.toInt()?.minus(containArticle.amountOf?.toInt()!!))!! > 0
+                    }
                     if (!isAvailable) break
                 }
                 if (isAvailable) {
@@ -48,7 +52,8 @@ class ProductServiceImpl : ProductService {
                     if (inventory.artId == containArticle.artId) {
                         isAvailable = (inventory.stock?.toInt()?.minus(containArticle.amountOf?.toInt()!!))!! > 0
                         if (isAvailable) {
-                            inventory.stock = (inventory.stock?.toInt()?.minus(containArticle.amountOf?.toInt()!!)).toString()
+                            inventory.stock =
+                                (inventory.stock?.toInt()?.minus(containArticle.amountOf?.toInt()!!)).toString()
                         } else continue
                     }
                 }
