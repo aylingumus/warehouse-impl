@@ -19,7 +19,7 @@ class ProductController(private val productService: ProductService) {
         val availableProducts = productService.getAvailableProducts()
         return if (availableProducts.size > 0) {
             ResponseEntity.ok(availableProducts)
-        } else ResponseEntity("No available products.", HttpStatus.NO_CONTENT)
+        } else ResponseEntity.ok("No available products.")
     }
 
     @PutMapping("/sell-product")
@@ -28,7 +28,7 @@ class ProductController(private val productService: ProductService) {
         return if (product == null) {
             ResponseEntity("Product not found.", HttpStatus.NOT_FOUND)
         } else if (product.isOutOfStock) {
-            ResponseEntity("Out of stock.", HttpStatus.NO_CONTENT)
+            ResponseEntity.ok("Out of stock.")
         } else ResponseEntity.ok(product)
     }
 }
