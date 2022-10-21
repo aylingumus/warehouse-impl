@@ -26,14 +26,13 @@ class ProductServiceImpl : ProductService {
             for (inventory: Inventory in inventoryRoot.inventory) {
                 for (containArticle: ContainArticles in product.containArticles) {
                     if (inventory.artId == containArticle.artId) {
-                        isAvailable = (inventory.stock?.toInt()?.minus(containArticle.amountOf?.toInt()!!))!! > 0
-                    }
-                    if (!isAvailable) break
+                        isAvailable = (inventory.stock?.toInt()?.minus(containArticle.amountOf?.toInt()!!))!! >= 0
+                    } else continue
                 }
-                if (isAvailable) {
-                    availableProducts.add(product)
-                } else continue
             }
+            if (isAvailable) {
+                availableProducts.add(product)
+            } else continue
         }
         return availableProducts
     }
@@ -50,7 +49,7 @@ class ProductServiceImpl : ProductService {
             for (inventory: Inventory in inventoryRoot.inventory) {
                 for (containArticle: ContainArticles in product.containArticles) {
                     if (inventory.artId == containArticle.artId) {
-                        isAvailable = (inventory.stock?.toInt()?.minus(containArticle.amountOf?.toInt()!!))!! > 0
+                        isAvailable = (inventory.stock?.toInt()?.minus(containArticle.amountOf?.toInt()!!))!! >= 0
                         if (isAvailable) {
                             inventory.stock =
                                 (inventory.stock?.toInt()?.minus(containArticle.amountOf?.toInt()!!)).toString()
