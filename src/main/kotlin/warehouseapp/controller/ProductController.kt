@@ -11,7 +11,7 @@ import warehouseapp.model.Product
 import warehouseapp.service.ProductService
 
 @RestController
-@RequestMapping("warehouse")
+@RequestMapping("warehouse-management")
 class ProductController(private val productService: ProductService) {
 
     @GetMapping("/available-products")
@@ -23,7 +23,7 @@ class ProductController(private val productService: ProductService) {
     }
 
     @PutMapping("/sell-product")
-    fun sellProduct(@RequestParam id: Int): ResponseEntity<*> {
+    fun sellProduct(@RequestParam id: String): ResponseEntity<*> {
         val product: Product? = productService.sellProduct(id)
         return if (product == null) {
             ResponseEntity("Product not found.", HttpStatus.NOT_FOUND)

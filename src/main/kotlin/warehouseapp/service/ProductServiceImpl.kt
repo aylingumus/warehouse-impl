@@ -3,27 +3,25 @@ package warehouseapp.service
 import org.springframework.stereotype.Service
 import warehouseapp.model.ContainArticles
 import warehouseapp.model.Inventory
-import warehouseapp.model.InventoryRoot
 import warehouseapp.model.Product
-import warehouseapp.model.ProductsRoot
-import warehouseapp.utils.FileOperations.Companion.inventoryFile
-import warehouseapp.utils.FileOperations.Companion.productsFile
-import warehouseapp.utils.FileOperations.Companion.readInventoryFromFile
-import warehouseapp.utils.FileOperations.Companion.readProductsFromFile
-import warehouseapp.utils.FileOperations.Companion.writeObjectToFile
+import warehouseapp.repository.InventoryRepository
+import warehouseapp.repository.ProductRepository
 
 @Service
-class ProductServiceImpl : ProductService {
+class ProductServiceImpl(
+    private val inventoryRepository: InventoryRepository,
+    private val productRepository: ProductRepository
+) : ProductService {
 
     override fun getAvailableProducts(): ArrayList<Product> {
         val availableProducts: ArrayList<Product> = arrayListOf()
-        val productsRoot: ProductsRoot = readProductsFromFile()
-        val inventoryRoot: InventoryRoot = readInventoryFromFile()
+        val productsRoot: MutableList<Product> = productRepository.findAll()
+        val inventoryRoot: MutableList<Inventory> = inventoryRepository.findAll()
         // I created "isOutOfStock" property to check which products are in stock or not
         // Then I check the availability of articles for each product
-        for (product: Product in productsRoot.products.filter { !it.isOutOfStock }) {
+        for (product: Product in productsRoot.filter { !it.isOutOfStock }) {
             var isAvailable = false
-            for (inventory: Inventory in inventoryRoot.inventory) {
+            for (inventory: Inventory in inventoryRoot) {
                 for (containArticle: ContainArticles in product.containArticles) {
                     if (inventory.artId == containArticle.artId) {
                         isAvailable = (inventory.stock?.toInt()?.minus(containArticle.amountOf?.toInt()!!))!! >= 0
@@ -37,29 +35,26 @@ class ProductServiceImpl : ProductService {
         return availableProducts
     }
 
-    override fun sellProduct(id: Int): Product? {
-        val productsFile = productsFile
-        val inventoryFile = inventoryFile
-        val productsRoot: ProductsRoot = readProductsFromFile()
-        val inventoryRoot: InventoryRoot = readInventoryFromFile()
-        val products = productsRoot.products
-        val product: Product = products.firstOrNull { it.id == id } ?: return null
+    override fun sellProduct(id: String): Product? {
+        val productsRoot: MutableList<Product> = productRepository.findAll()
+        val inventoryRoot: MutableList<Inventory> = inventoryRepository.findAll()
+        val product: Product = productsRoot.firstOrNull { it.productId == id } ?: return null
         if (!product.isOutOfStock) {
             var isAvailable = false
-            for (inventory: Inventory in inventoryRoot.inventory) {
+            for (inventory: Inventory in inventoryRoot) {
                 for (containArticle: ContainArticles in product.containArticles) {
                     if (inventory.artId == containArticle.artId) {
                         isAvailable = (inventory.stock?.toInt()?.minus(containArticle.amountOf?.toInt()!!))!! >= 0
                         if (isAvailable) {
                             inventory.stock =
                                 (inventory.stock?.toInt()?.minus(containArticle.amountOf?.toInt()!!)).toString()
+                            inventoryRepository.save(inventory)
                         } else continue
                     }
                 }
             }
             if (!isAvailable) product.isOutOfStock = true
-            writeObjectToFile(productsRoot, productsFile)
-            writeObjectToFile(inventoryRoot, inventoryFile)
+            productRepository.save(product)
         }
         return product
     }
