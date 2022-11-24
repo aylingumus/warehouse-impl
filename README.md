@@ -11,7 +11,7 @@ Current warehouse implementation supports the following functionality:
 
 ### Data Source
 
-The warehouse uses 2 files as the data source and uses the [JSON format](https://en.wikipedia.org/wiki/JSON).
+The warehouse uses MongoDB and includes 2 documents as products and inventory.
 
 See the [resources](https://github.com/aylingumus/warehouse-impl/tree/master/src/main/resources) for more information.
 
